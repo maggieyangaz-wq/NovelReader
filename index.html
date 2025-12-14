@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>极简本地小说阅读器</title>
+    <style>
+        :root {
+            --bg-color: #f6f4ec;
+            --text-color: #333333;
+            --control-bg: #ffffff;
+            --accent-color: #4CAF50;
+            --font-size: 18px;
+            --line-height: 1.8;
+        }
+
+        /* 夜间模式变量 */
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #b0b0b0;
+            --control-bg: #2d2d2d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* 顶部工具栏 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: var(--control-bg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 100;
+        }
+
+        .header h1 { font-size: 16px; font-weight: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+        
+        .btn {
+            background: none;
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* 主要阅读区域 */
+        #reader-content {
+            padding: 70px 20px 100px 20px;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+            white-space: pre-wrap; /* 保留原文换行 */
+            text-align: justify;
+            min-height: 100vh;
+        }
+
+        /* 底部设置面板 */
+        .settings-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--control-bg);
+            padding: 20px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 101;
+        }
+
+        .settings-panel.active { transform: translateY(0); }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .font-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--text-color);
+            background: none;
+            color: var(--text-color);
+            font-size: 20px;
+        }
+
+        .theme-switch {
+            padding: 8px 15px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            border-radius: 20px;
+        }
+
+        /* 文件上传隐藏 */
+        #file-input { display: none; }
+
+        /* 空状态提示 */
+        .empty-state {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            opacity: 0.6;
+        }
+        
+        .upload-btn-large {
+            margin-top: 20px;
+            padding: 10px 25px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="book-title">未选择文件</h1>
+        <button class="btn" onclick="toggleSettings()">设置</button>
+    </div>
+
+    <div class="empty-state" id="empty-state">
+        <p>还没有加载小说</p>
+        <button class="upload-btn-large" onclick="document.getElementById('file-input').click()">点击选择 TXT 文件</button>
+    </div>
+
+    <div id="reader-content"></div>
+
+    <input type="file" id="file-input" accept=".txt">
+
+    <div class="settings-panel" id="settings-panel">
+        <div class="setting-row">
+            <span>字号大小</span>
+            <div class="font-controls">
+                <button onclick="changeFontSize(-1)">A-</button>
+                <span style="margin: 0 10px" id="font-size-display">18</span>
+                <button onclick="changeFontSize(1)">A+</button>
+            </div>
+        </div>
+        <div class="setting-row">
+            <span>阅读模式</span>
+            <button class="theme-switch" onclick="toggleTheme()">切换 日间/夜间</button>
+        </div>
+        <div class="setting-row" style="justify-content: center; margin-bottom: 0;">
+            <button class="btn" onclick="document.getElementById('file-input').click()" style="width: 100%">打开新文件</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM 元素
+        const fileInput = document.getElementById('file-input');
+        const contentDiv = document.getElementById('reader-content');
+        const titleElem = document.getElementById('book-title');
+        const emptyState = document.getElementById('empty-state');
+        const settingsPanel = document.getElementById('settings-panel');
+        
+        // 状态变量
+        let currentFontSize = 18;
+        let isDarkMode = false;
+        let currentFileName = '';
+
+        // 初始化设置
+        window.onload = function() {
+            // 恢复字号
+            const savedSize = localStorage.getItem('reader_fontSize');
+            if (savedSize) {
+                currentFontSize = parseInt(savedSize);
+                updateFontSize();
+            }
+            
+            // 恢复主题
+            const savedTheme = localStorage.getItem('reader_theme');
+            if (savedTheme === 'dark') {
+                isDarkMode = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
+            // 点击内容区域关闭设置面板
+            contentDiv.addEventListener('click', () => {
+                settingsPanel.classList.remove('active');
+            });
+        };
+
+        // 监听文件选择
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            currentFileName = file.name;
+            titleElem.innerText = currentFileName;
+            emptyState.style.display = 'none';
+            settingsPanel.classList.remove('active');
+
+            const reader = new FileReader();
+            
+            // 默认使用 UTF-8，如果是乱码通常是因为中文需要 GBK
+            // 这里简单处理：优先尝试读取
+            reader.onload = function(e) {
+                const text = e.target.result;
+                contentDiv.innerText = text;
+                
+                // 尝试恢复上次阅读位置
+                const lastPos = localStorage.getItem('reader_pos_' + currentFileName);
+                if (lastPos) {
+                    setTimeout(() => {
+                        window.scrollTo(0, parseInt(lastPos));
+                        alert('已跳转到上次阅读位置');
+                    }, 100);
+                } else {
+                    window.scrollTo(0, 0);
+                }
+
+                // 开始监听滚动以保存位置
+                window.addEventListener('scroll', saveProgress);
+            };
+
+            reader.readAsText(file, 'UTF-8'); // 如果遇到乱码，可以将 'UTF-8' 改为 'GBK'
+        });
+
+        // 保存阅读进度 (节流处理，避免写入太频繁)
+        let scrollTimeout;
+        function saveProgress() {
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                if (currentFileName) {
+                    localStorage.setItem('reader_pos_' + currentFileName, window.scrollY);
+                }
+            }, 500);
+        }
+
+        // 设置面板开关
+        function toggleSettings() {
+            settingsPanel.classList.toggle('active');
+        }
+
+        // 调整字体
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            if (currentFontSize < 12) currentFontSize = 12;
+            if (currentFontSize > 36) currentFontSize = 36;
+            updateFontSize();
+            localStorage.setItem('reader_fontSize', currentFontSize);
+        }
+
+        function updateFontSize() {
+            document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
+            document.getElementById('font-size-display').innerText = currentFontSize;
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('reader_theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('reader_theme', 'light');
+            }
+        }
+    </script>
+</body>
+</html>

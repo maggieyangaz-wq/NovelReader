@@ -1,0 +1,17 @@
+# 原始小说文件（未加密）
+*.txt
+!README.md
+
+# Node 相关
+node_modules/
+package-lock.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

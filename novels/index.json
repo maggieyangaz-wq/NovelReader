@@ -2,8 +2,33 @@
   "novels": [
     {
       "id": "novel-1",
-      "title": "测试小说",
-      "filename": "test-novel1.txt.encrypted"
+      "title": "北少旧事，朝花夕拾（学武女孩的SP故事）",
+      "filename": "novel1.md.encrypted"
+    },
+    {
+      "id": "novel-2",
+      "title": "平行之痛",
+      "filename": "novel2.md.encrypted"
+    },
+    {
+      "id": "novel-3",
+      "title": "异界的入侵者",
+      "filename": "novel3.md.encrypted"
+    },
+    {
+      "id": "novel-4",
+      "title": "阿托斯岛",
+      "filename": "novel4.md.encrypted"
+    },
+    {
+      "id": "novel-5",
+      "title": "非同小可",
+      "filename": "novel5.md.encrypted"
+    },
+    {
+      "id": "novel-6",
+      "title": "魔尊的囚奴",
+      "filename": "novel6.md.encrypted"
     }
   ]
 }

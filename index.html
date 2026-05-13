@@ -2,311 +2,775 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>在线小说阅读器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小说阅读器</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
-            --bg-color: #f6f4ec;
-            --text-color: #333333;
-            --control-bg: #ffffff;
-            --accent-color: #4CAF50;
-            --error-color: #f44336;
-            --font-size: 18px;
-            --line-height: 1.8;
+            --primary-color: #2c3e50;
+            --secondary-color: #e74c3c;
+            --bg-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --border-color: #bdc3c7;
         }
-
-        [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --text-color: #b0b0b0;
-            --control-bg: #2d2d2d;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-            overflow-x: hidden;
+            background-color: #f5f5f5;
+            color: var(--text-dark);
+            line-height: 1.6;
         }
 
+        /* ===== 头部 ===== */
         .header {
-            position: fixed;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background-color: var(--control-bg);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
             z-index: 100;
         }
 
-        .header h1 { font-size: 16px; font-weight: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
-
-        .btn {
-            background: none;
-            border: 1px solid var(--text-color);
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        #reader-content {
-            padding: 70px 20px 100px 20px;
-            font-size: var(--font-size);
-            line-height: var(--line-height);
-            white-space: pre-wrap;
-            text-align: justify;
-            min-height: 100vh;
-        }
-
-        .settings-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: var(--control-bg);
-            padding: 20px;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 101;
-        }
-
-        .settings-panel.active { transform: translateY(0); }
-
-        .setting-row {
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
         }
 
-        .font-controls button {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 1px solid var(--text-color);
-            background: none;
-            color: var(--text-color);
-            font-size: 20px;
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
         }
 
-        .theme-switch {
-            padding: 8px 15px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--text-color);
-            color: var(--text-color);
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
             border-radius: 20px;
-        }
-
-        /* 书单列表 */
-        .empty-state {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            opacity: 0.6;
-        }
-
-        .novel-list {
-            padding: 70px 20px 20px 20px;
-        }
-
-        .novel-item {
-            display: block;
-            width: 100%;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            background-color: var(--control-bg);
-            border: 1px solid var(--text-color);
-            border-radius: 8px;
-            color: var(--text-color);
-            text-align: left;
             cursor: pointer;
-            transition: background-color 0.2s;
+            font-size: 14px;
+            transition: all 0.3s;
         }
 
-        .novel-item:hover {
-            opacity: 0.8;
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
-        /* 密码输入模态框 */
-        .modal-overlay {
+        /* ===== 书单列表页面 ===== */
+        .novel-list-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .novels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .novels-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        .novel-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .novel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .novel-cover {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .novel-cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        .novel-cover-text {
+            position: relative;
+            z-index: 1;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .novel-info {
+            padding: 16px;
+        }
+
+        .novel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .novel-status {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        /* ===== 阅读页面 ===== */
+        .reader-page {
+            display: none;
+            min-height: 100vh;
+            background: white;
+        }
+
+        .reader-page.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reader-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .reader-header-title {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .reader-header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .reader-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .reader-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .reader-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            line-height: 2;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .reader-content {
+                padding: 20px;
+                max-width: 100%;
+            }
+        }
+
+        .reader-footer {
+            background: var(--bg-light);
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .progress-container {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary-color);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .footer-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .footer-btn {
+            background: white;
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .footer-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .footer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== 模态框 ===== */
+        .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 200;
-        }
-
-        .modal-overlay.active {
-            display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .modal {
-            background-color: var(--control-bg);
-            padding: 30px;
-            border-radius: 12px;
-            max-width: 300px;
-            width: 90%;
+        .modal.active {
+            display: flex;
         }
 
-        .modal h2 {
-            font-size: 18px;
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
             margin-bottom: 20px;
         }
 
-        .modal input {
+        .modal-input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid var(--text-color);
-            border-radius: 4px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin-bottom: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .modal-error {
+            color: var(--secondary-color);
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
         .modal-buttons {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            justify-content: flex-end;
         }
 
-        .modal-buttons button {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--text-color);
-            border-radius: 4px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
             cursor: pointer;
-        }
-
-        .modal-buttons button:hover {
-            opacity: 0.8;
-        }
-
-        .error-msg {
-            color: var(--error-color);
             font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
+            transition: all 0.3s;
         }
 
-        .back-btn {
-            margin-bottom: 20px;
+        .modal-btn-cancel {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-btn-confirm {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        /* ===== 目录侧栏 ===== */
+        .toc-sidebar {
+            position: fixed;
+            left: -350px;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s;
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .toc-sidebar.active {
+            left: 0;
+        }
+
+        .toc-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toc-close {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 18px;
+        }
+
+        .toc-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .toc-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            color: var(--text-dark);
+            font-size: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .toc-item:hover {
+            background: var(--bg-light);
+            border-left-color: var(--secondary-color);
+        }
+
+        .toc-item.active {
+            background: rgba(231, 76, 60, 0.1);
+            border-left-color: var(--secondary-color);
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        /* ===== 书签侧栏 ===== */
+        .bookmarks-sidebar {
+            position: fixed;
+            right: -350px;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s;
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .bookmarks-sidebar.active {
+            right: 0;
+        }
+
+        .bookmarks-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookmarks-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .bookmark-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--bg-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bookmark-item:hover {
+            background: var(--bg-light);
+        }
+
+        .bookmark-title {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .bookmark-text {
+            font-size: 13px;
+            color: var(--text-dark);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .bookmark-delete {
+            float: right;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
         }
     </style>
 </head>
 <body>
-
+    <!-- 头部 -->
     <div class="header">
-        <h1 id="book-title">小说阅读器</h1>
-        <button class="btn" onclick="toggleSettings()">设置</button>
+        <div class="header-content">
+            <h1>📚 小说阅读器</h1>
+            <div class="header-buttons">
+                <button class="header-btn" id="theme-btn">🌙 夜间模式</button>
+                <button class="header-btn" id="home-btn">首页</button>
+            </div>
+        </div>
     </div>
 
-    <!-- 书单列表 -->
-    <div id="novel-list-container" class="novel-list">
-        <button class="btn back-btn" id="back-btn" style="display:none;" onclick="backToList()">← 返回书单</button>
-        <div id="novel-items"></div>
-        <div id="loading-msg" style="text-align: center; opacity: 0.6;">加载中...</div>
+    <!-- 书单列表页面 -->
+    <div id="novel-list-page" class="novel-list-page">
+        <h2 class="section-title">我的书库</h2>
+        <div id="novels-grid" class="novels-grid"></div>
     </div>
 
-    <!-- 阅读区域 -->
-    <div id="reader-content"></div>
+    <!-- 阅读页面 -->
+    <div id="reader-page" class="reader-page">
+        <div class="reader-header">
+            <div class="reader-header-title" id="reader-title"></div>
+            <div class="reader-header-buttons">
+                <button class="reader-btn" id="toc-btn">📑 目录</button>
+                <button class="reader-btn" id="bookmark-btn">🔖 书签</button>
+                <button class="reader-btn" id="settings-btn">⚙️ 设置</button>
+            </div>
+        </div>
+        <div class="reader-content" id="reader-content"></div>
+        <div class="reader-footer">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progress-text">进度: 0%</span>
+                </div>
+            </div>
+            <div class="footer-buttons">
+                <button class="footer-btn" id="prev-btn">← 上一页</button>
+                <button class="footer-btn" id="next-btn">下一页 →</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- 密码输入框 -->
-    <div class="modal-overlay" id="password-modal">
-        <div class="modal">
-            <h2 id="modal-title">输入密钥</h2>
-            <input type="password" id="password-input" placeholder="请输入密钥" onkeypress="handlePasswordEnter(event)">
-            <div class="error-msg" id="error-msg"></div>
+    <!-- 目录侧栏 -->
+    <div id="toc-sidebar" class="toc-sidebar">
+        <div class="toc-header">
+            章节目录
+            <button class="toc-close" id="toc-close">✕</button>
+        </div>
+        <div class="toc-list" id="toc-list"></div>
+    </div>
+
+    <!-- 书签侧栏 -->
+    <div id="bookmarks-sidebar" class="bookmarks-sidebar">
+        <div class="bookmarks-header">
+            我的书签
+            <button class="toc-close" id="bookmarks-close">✕</button>
+        </div>
+        <div class="bookmarks-list" id="bookmarks-list"></div>
+    </div>
+
+    <!-- 密码输入模态框 -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">输入密钥以解密</div>
+            <input type="password" id="password-input" class="modal-input" placeholder="请输入密钥">
+            <div class="modal-error" id="password-error"></div>
             <div class="modal-buttons">
-                <button onclick="closePasswordModal()">取消</button>
-                <button onclick="submitPassword()">确认</button>
+                <button class="modal-btn modal-btn-cancel" id="password-cancel">取消</button>
+                <button class="modal-btn modal-btn-confirm" id="password-confirm">确认</button>
             </div>
         </div>
     </div>
 
-    <!-- 隐藏的下载元素 -->
-    <div id="hidden-downloader"></div>
-
-    <div class="settings-panel" id="settings-panel">
-        <div class="setting-row">
-            <span>字号大小</span>
-            <div class="font-controls">
-                <button onclick="changeFontSize(-1)">A-</button>
-                <span style="margin: 0 10px" id="font-size-display">18</span>
-                <button onclick="changeFontSize(1)">A+</button>
+    <!-- 设置模态框 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">阅读设置</div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px;">字体大小</label>
+                <input type="range" id="font-size-slider" min="12" max="24" value="16" style="width: 100%;">
+                <div style="text-align: center; margin-top: 8px;">当前: <span id="font-size-display">16</span>px</div>
             </div>
-        </div>
-        <div class="setting-row">
-            <span>阅读模式</span>
-            <button class="theme-switch" onclick="toggleTheme()">切换 日间/夜间</button>
-        </div>
-        <div class="setting-row" style="justify-content: center; margin-bottom: 0;">
-            <button class="btn" onclick="backToList()" style="width: 100%">返回书单</button>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px;">行距</label>
+                <input type="range" id="line-height-slider" min="1.2" max="2.5" step="0.1" value="1.8" style="width: 100%;">
+                <div style="text-align: center; margin-top: 8px;">当前: <span id="line-height-display">1.8</span></div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px;">每页字数</label>
+                <input type="range" id="chars-per-page-slider" min="500" max="3000" step="100" value="1500" style="width: 100%;">
+                <div style="text-align: center; margin-top: 8px;">当前: <span id="chars-per-page-display">1500</span>字</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-confirm" id="settings-close">关闭</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const contentDiv = document.getElementById('reader-content');
-        const titleElem = document.getElementById('book-title');
-        const settingsPanel = document.getElementById('settings-panel');
-        const novelListContainer = document.getElementById('novel-list-container');
-        const novelItemsDiv = document.getElementById('novel-items');
-        const loadingMsg = document.getElementById('loading-msg');
-        const backBtn = document.getElementById('back-btn');
-        const passwordModal = document.getElementById('password-modal');
-        const passwordInput = document.getElementById('password-input');
-        const errorMsg = document.getElementById('error-msg');
-        const modalTitle = document.getElementById('modal-title');
-
-        let currentFontSize = 18;
-        let isDarkMode = false;
+        // ===== 全局状态 =====
         let novels = [];
         let currentNovel = null;
+        let currentNovelText = '';
+        let currentPage = 0;
+        let totalPages = 0;
+        let charsPerPage = 1500;
+        let fontSize = 16;
+        let lineHeight = 1.8;
+        let bookmarks = [];
+        let tableOfContents = [];
+        let isDarkMode = false;
         let pendingNovelId = null;
 
-        // 初始化
-        window.onload = function() {
-            const savedSize = localStorage.getItem('reader_fontSize');
-            if (savedSize) {
-                currentFontSize = parseInt(savedSize);
-                updateFontSize();
-            }
+        // ===== 初始化 =====
+        window.addEventListener('load', () => {
+            loadSettings();
+            loadNovelsList();
+            setupEventListeners();
+        });
 
-            const savedTheme = localStorage.getItem('reader_theme');
-            if (savedTheme === 'dark') {
+        function loadSettings() {
+            const savedFontSize = localStorage.getItem('reader_fontSize');
+            if (savedFontSize) fontSize = parseInt(savedFontSize);
+
+            const savedLineHeight = localStorage.getItem('reader_lineHeight');
+            if (savedLineHeight) lineHeight = parseFloat(savedLineHeight);
+
+            const savedCharsPerPage = localStorage.getItem('reader_charsPerPage');
+            if (savedCharsPerPage) charsPerPage = parseInt(savedCharsPerPage);
+
+            const savedDarkMode = localStorage.getItem('reader_darkMode');
+            if (savedDarkMode === 'true') {
                 isDarkMode = true;
-                document.documentElement.setAttribute('data-theme', 'dark');
+                applyDarkMode();
             }
+        }
 
-            contentDiv.addEventListener('click', () => {
-                settingsPanel.classList.remove('active');
+        function setupEventListeners() {
+            document.getElementById('password-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitPassword();
             });
 
-            loadNovelsList();
-        };
+            document.getElementById('password-confirm').addEventListener('click', submitPassword);
+            document.getElementById('password-cancel').addEventListener('click', closePasswordModal);
 
-        // 加载书单
+            document.getElementById('theme-btn').addEventListener('click', toggleDarkMode);
+            document.getElementById('home-btn').addEventListener('click', goHome);
+
+            document.getElementById('toc-btn').addEventListener('click', () => {
+                document.getElementById('toc-sidebar').classList.toggle('active');
+            });
+            document.getElementById('toc-close').addEventListener('click', () => {
+                document.getElementById('toc-sidebar').classList.remove('active');
+            });
+
+            document.getElementById('bookmark-btn').addEventListener('click', () => {
+                document.getElementById('bookmarks-sidebar').classList.toggle('active');
+            });
+            document.getElementById('bookmarks-close').addEventListener('click', () => {
+                document.getElementById('bookmarks-sidebar').classList.remove('active');
+            });
+
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.add('active');
+                updateSettingsUI();
+            });
+            document.getElementById('settings-close').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.remove('active');
+            });
+
+            document.getElementById('font-size-slider').addEventListener('input', (e) => {
+                fontSize = parseInt(e.target.value);
+                updateReaderFontSize();
+                localStorage.setItem('reader_fontSize', fontSize);
+                document.getElementById('font-size-display').textContent = fontSize;
+                renderCurrentPage();
+            });
+
+            document.getElementById('line-height-slider').addEventListener('input', (e) => {
+                lineHeight = parseFloat(e.target.value);
+                updateReaderLineHeight();
+                localStorage.setItem('reader_lineHeight', lineHeight);
+                document.getElementById('line-height-display').textContent = lineHeight.toFixed(1);
+                renderCurrentPage();
+            });
+
+            document.getElementById('chars-per-page-slider').addEventListener('input', (e) => {
+                charsPerPage = parseInt(e.target.value);
+                localStorage.setItem('reader_charsPerPage', charsPerPage);
+                document.getElementById('chars-per-page-display').textContent = charsPerPage;
+                currentPage = 0;
+                totalPages = Math.ceil(currentNovelText.length / charsPerPage);
+                renderCurrentPage();
+            });
+
+            document.getElementById('prev-btn').addEventListener('click', prevPage);
+            document.getElementById('next-btn').addEventListener('click', nextPage);
+
+            document.getElementById('progress-bar').addEventListener('click', (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const percentage = (e.clientX - rect.left) / rect.width;
+                currentPage = Math.floor(percentage * totalPages);
+                renderCurrentPage();
+            });
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if (document.getElementById('reader-page').classList.contains('active')) {
+                    if (e.key === 'ArrowRight') nextPage();
+                    if (e.key === 'ArrowLeft') prevPage();
+                    if (e.key === 'b' || e.key === 'B') addBookmark();
+                }
+            });
+        }
+
+        function updateSettingsUI() {
+            document.getElementById('font-size-slider').value = fontSize;
+            document.getElementById('font-size-display').textContent = fontSize;
+            document.getElementById('line-height-slider').value = lineHeight;
+            document.getElementById('line-height-display').textContent = lineHeight.toFixed(1);
+            document.getElementById('chars-per-page-slider').value = charsPerPage;
+            document.getElementById('chars-per-page-display').textContent = charsPerPage;
+        }
+
+        // ===== 加载小说列表 =====
         async function loadNovelsList() {
             try {
                 const response = await fetch('novels/index.json');
@@ -314,232 +778,310 @@
                 novels = data.novels;
                 displayNovels();
             } catch (err) {
-                loadingMsg.innerText = '加载失败，请刷新重试';
+                console.error('加载失败:', err);
             }
         }
 
-        // 显示书单
         function displayNovels() {
-            novelItemsDiv.innerHTML = '';
-            loadingMsg.style.display = 'none';
-
-            if (novels.length === 0) {
-                loadingMsg.innerText = '暂无小说';
-                loadingMsg.style.display = 'block';
-                return;
-            }
-
-            novels.forEach(novel => {
-                const btn = document.createElement('button');
-                btn.className = 'novel-item';
-                btn.textContent = novel.title;
-                btn.onclick = () => requestPassword(novel.id);
-                novelItemsDiv.appendChild(btn);
-            });
+            const grid = document.getElementById('novels-grid');
+            grid.innerHTML = novels.map(novel => `
+                <div class="novel-card" onclick="requestPassword('${novel.id}')">
+                    <div class="novel-cover">
+                        <div class="novel-cover-text">${novel.title}</div>
+                    </div>
+                    <div class="novel-info">
+                        <div class="novel-title">${novel.title}</div>
+                        <div class="novel-status">点击开始阅读</div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // 请求密码
+        // ===== 密码验证 =====
         function requestPassword(novelId) {
             pendingNovelId = novelId;
-            const novel = novels.find(n => n.id === novelId);
-            modalTitle.textContent = `请输入密钥：${novel.title}`;
-            passwordInput.value = '';
-            errorMsg.innerText = '';
-            passwordModal.classList.add('active');
-            passwordInput.focus();
+            document.getElementById('password-input').value = '';
+            document.getElementById('password-error').textContent = '';
+            document.getElementById('password-modal').classList.add('active');
+            document.getElementById('password-input').focus();
         }
 
-        function handlePasswordEnter(event) {
-            if (event.key === 'Enter') {
-                submitPassword();
-            }
-        }
-
-        // 提交密码并解密
         async function submitPassword() {
-            const password = passwordInput.value;
+            const password = document.getElementById('password-input').value;
             if (!password) return;
 
-            errorMsg.innerText = '';
             const novel = novels.find(n => n.id === pendingNovelId);
-
             try {
-                console.log('正在加载文件:', `novels/${novel.filename}`);
                 const response = await fetch(`novels/${novel.filename}`);
-                console.log('文件加载响应:', response.status);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
                 const encryptedBuffer = await response.arrayBuffer();
-                console.log('加密文件大小:', encryptedBuffer.byteLength);
-
                 const decrypted = await decryptFile(encryptedBuffer, password);
-                console.log('解密结果:', decrypted ? '成功' : '失败');
 
                 if (decrypted === null) {
-                    console.log('解密返回 null，显示密码错误');
-                    errorMsg.innerText = '密码错误';
+                    document.getElementById('password-error').textContent = '密码错误';
                     return;
                 }
 
-                console.log('密码正确，显示内容');
                 closePasswordModal();
-                displayNovel(novel, decrypted);
+                openNovel(novel, decrypted);
             } catch (err) {
-                console.error('提交密码时出错:', err);
-                errorMsg.innerText = '密码错误';
+                document.getElementById('password-error').textContent = '密码错误';
             }
         }
 
-        // 解密文件
+        function closePasswordModal() {
+            document.getElementById('password-modal').classList.remove('active');
+        }
+
+        // ===== 解密 =====
         async function decryptFile(encryptedBuffer, password) {
             try {
-                console.log('开始解密，buffer 大小:', encryptedBuffer.byteLength);
-
                 const iv = new Uint8Array(encryptedBuffer.slice(0, 16));
                 const encrypted = new Uint8Array(encryptedBuffer.slice(16));
-
-                console.log('IV 大小:', iv.length, '密文大小:', encrypted.length);
-
                 const key = await deriveKey(password);
-                console.log('密钥派生成功');
-
                 const decrypted = await crypto.subtle.decrypt(
                     { name: 'AES-CBC', iv: iv },
                     key,
                     encrypted
                 );
-
-                console.log('AES 解密成功，结果大小:', decrypted.byteLength);
-
                 const decoder = new TextDecoder();
                 const text = decoder.decode(decrypted);
-
-                console.log('文本解码成功，长度:', text.length);
-
-                // 简单验证：如果解密出来的文本看起来不对，返回 null
-                if (!text || text.trim().length === 0) {
-                    console.log('文本为空，认为密码错误');
-                    return null;
-                }
-
-                console.log('解密成功，返回文本');
+                if (!text || text.trim().length === 0) return null;
                 return text;
             } catch (err) {
-                console.error('解密异常:', err.message, err.stack);
                 return null;
             }
         }
 
-        // 从密码派生密钥
         async function deriveKey(password) {
-            try {
-                const encoder = new TextEncoder();
-                const passwordBuffer = encoder.encode(password);
-
-                console.log('导入原始密钥');
-                const key = await crypto.subtle.importKey(
-                    'raw',
-                    passwordBuffer,
-                    { name: 'PBKDF2' },
-                    false,
-                    ['deriveKey']
-                );
-
-                console.log('派生 PBKDF2 密钥，迭代次数: 100000');
-                return crypto.subtle.deriveKey(
-                    { name: 'PBKDF2', salt: encoder.encode('salt'), iterations: 100000, hash: 'SHA-256' },
-                    key,
-                    { name: 'AES-CBC', length: 256 },
-                    false,
-                    ['decrypt']
-                );
-            } catch (err) {
-                console.error('密钥派生失败:', err.message);
-                throw err;
-            }
+            const encoder = new TextEncoder();
+            const passwordBuffer = encoder.encode(password);
+            const key = await crypto.subtle.importKey(
+                'raw',
+                passwordBuffer,
+                { name: 'PBKDF2' },
+                false,
+                ['deriveKey']
+            );
+            return crypto.subtle.deriveKey(
+                { name: 'PBKDF2', salt: encoder.encode('salt'), iterations: 100000, hash: 'SHA-256' },
+                key,
+                { name: 'AES-CBC', length: 256 },
+                false,
+                ['decrypt']
+            );
         }
 
-        function closePasswordModal() {
-            passwordModal.classList.remove('active');
-        }
-
-        // 显示小说
-        function displayNovel(novel, text) {
+        // ===== 打开小说 =====
+        function openNovel(novel, text) {
             currentNovel = novel;
-            novelListContainer.style.display = 'none';
-            contentDiv.style.display = 'block';
-            contentDiv.innerText = text;
-            titleElem.innerText = novel.title;
-            backBtn.style.display = 'inline-block';
+            currentNovelText = text;
+            currentPage = 0;
 
-            const lastPos = localStorage.getItem('reader_pos_' + novel.id);
-            if (lastPos) {
-                setTimeout(() => {
-                    window.scrollTo(0, parseInt(lastPos));
-                }, 100);
-            } else {
-                window.scrollTo(0, 0);
+            // 恢复之前的阅读位置
+            const savedPage = localStorage.getItem(`reader_page_${novel.id}`);
+            if (savedPage) {
+                currentPage = parseInt(savedPage);
             }
 
-            window.addEventListener('scroll', saveProgress);
+            totalPages = Math.ceil(text.length / charsPerPage);
+            parseTableOfContents();
+            loadBookmarks();
+
+            document.getElementById('novel-list-page').style.display = 'none';
+            document.getElementById('reader-page').classList.add('active');
+            document.getElementById('reader-title').textContent = novel.title;
+
+            renderCurrentPage();
         }
 
-        // 返回书单
-        function backToList() {
-            if (currentNovel) {
-                window.removeEventListener('scroll', saveProgress);
-                contentDiv.style.display = 'none';
-                contentDiv.innerText = '';
-                currentNovel = null;
+        // ===== 分页渲染 =====
+        function renderCurrentPage() {
+            const startIdx = currentPage * charsPerPage;
+            const endIdx = Math.min(startIdx + charsPerPage, currentNovelText.length);
+            const pageText = currentNovelText.substring(startIdx, endIdx);
+
+            document.getElementById('reader-content').innerText = pageText;
+
+            // 更新进度
+            const progress = (currentPage + 1) / totalPages;
+            document.getElementById('progress-fill').style.width = (progress * 100) + '%';
+            document.getElementById('progress-text').textContent = `进度: ${Math.round(progress * 100)}% (${currentPage + 1}/${totalPages})`;
+
+            // 更新按钮状态
+            document.getElementById('prev-btn').disabled = currentPage === 0;
+            document.getElementById('next-btn').disabled = currentPage >= totalPages - 1;
+
+            // 保存阅读位置
+            localStorage.setItem(`reader_page_${currentNovel.id}`, currentPage);
+
+            // 滚动到顶部
+            document.getElementById('reader-content').scrollTop = 0;
+
+            // 更新活跃目录项
+            updateActiveTocItem();
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                renderCurrentPage();
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                renderCurrentPage();
+            }
+        }
+
+        // ===== 目录解析 =====
+        function parseTableOfContents() {
+            tableOfContents = [];
+            const lines = currentNovelText.split('\n');
+            let charCount = 0;
+
+            lines.forEach((line, idx) => {
+                // 识别章节标题（以数字、"第"字、或其他标记开头）
+                if (/^(第.{0,10}[章节回]|\.?[0-9]+\.?|Chapter|CHAPTER|\[.+\])/i.test(line.trim()) && line.trim().length > 2) {
+                    tableOfContents.push({
+                        title: line.trim(),
+                        charIndex: charCount
+                    });
+                }
+                charCount += line.length + 1; // +1 for newline
+            });
+
+            renderTableOfContents();
+        }
+
+        function renderTableOfContents() {
+            const list = document.getElementById('toc-list');
+            if (tableOfContents.length === 0) {
+                list.innerHTML = '<div class="empty-state">未检测到章节目录</div>';
+                return;
             }
 
-            novelListContainer.style.display = 'block';
-            titleElem.innerText = '小说阅读器';
-            backBtn.style.display = 'none';
-            settingsPanel.classList.remove('active');
+            list.innerHTML = tableOfContents.map((item, idx) => `
+                <div class="toc-item" onclick="jumpToChapter(${idx})">${item.title}</div>
+            `).join('');
         }
 
-        // 保存进度
-        let scrollTimeout;
-        function saveProgress() {
-            if (!currentNovel) return;
-            if (scrollTimeout) clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                localStorage.setItem('reader_pos_' + currentNovel.id, window.scrollY);
-            }, 500);
+        function updateActiveTocItem() {
+            const currentCharIndex = currentPage * charsPerPage;
+            document.querySelectorAll('.toc-item').forEach((item, idx) => {
+                item.classList.remove('active');
+                if (idx < tableOfContents.length && tableOfContents[idx + 1]) {
+                    if (currentCharIndex >= tableOfContents[idx].charIndex &&
+                        currentCharIndex < tableOfContents[idx + 1].charIndex) {
+                        item.classList.add('active');
+                    }
+                } else if (idx === tableOfContents.length - 1) {
+                    if (currentCharIndex >= tableOfContents[idx].charIndex) {
+                        item.classList.add('active');
+                    }
+                }
+            });
         }
 
-        function toggleSettings() {
-            if (currentNovel) {
-                settingsPanel.classList.toggle('active');
+        function jumpToChapter(idx) {
+            const charIndex = tableOfContents[idx].charIndex;
+            currentPage = Math.floor(charIndex / charsPerPage);
+            renderCurrentPage();
+            document.getElementById('toc-sidebar').classList.remove('active');
+        }
+
+        // ===== 书签功能 =====
+        function loadBookmarks() {
+            const saved = localStorage.getItem(`bookmarks_${currentNovel.id}`);
+            bookmarks = saved ? JSON.parse(saved) : [];
+            renderBookmarks();
+        }
+
+        function addBookmark() {
+            const startIdx = currentPage * charsPerPage;
+            const endIdx = Math.min(startIdx + 100, currentNovelText.length);
+            const text = currentNovelText.substring(startIdx, endIdx);
+
+            bookmarks.push({
+                page: currentPage,
+                text: text,
+                timestamp: new Date().toLocaleString()
+            });
+
+            localStorage.setItem(`bookmarks_${currentNovel.id}`, JSON.stringify(bookmarks));
+            renderBookmarks();
+        }
+
+        function renderBookmarks() {
+            const list = document.getElementById('bookmarks-list');
+            if (bookmarks.length === 0) {
+                list.innerHTML = '<div class="empty-state">还没有书签</div>';
+                return;
             }
+
+            list.innerHTML = bookmarks.map((bm, idx) => `
+                <div class="bookmark-item">
+                    <div class="bookmark-title">第 ${bm.page + 1} 页 • ${bm.timestamp}</div>
+                    <div class="bookmark-text">"${bm.text.substring(0, 50)}..."</div>
+                    <button class="bookmark-delete" onclick="deleteBookmark(${idx})">删除</button>
+                    <button class="footer-btn" style="width: 100%; margin-top: 8px;" onclick="jumpToBookmark(${idx})">跳转</button>
+                </div>
+            `).join('');
         }
 
-        function changeFontSize(delta) {
-            currentFontSize += delta;
-            if (currentFontSize < 12) currentFontSize = 12;
-            if (currentFontSize > 36) currentFontSize = 36;
-            updateFontSize();
-            localStorage.setItem('reader_fontSize', currentFontSize);
+        function jumpToBookmark(idx) {
+            currentPage = bookmarks[idx].page;
+            renderCurrentPage();
+            document.getElementById('bookmarks-sidebar').classList.remove('active');
         }
 
-        function updateFontSize() {
-            document.documentElement.style.setProperty('--font-size', currentFontSize + 'px');
-            document.getElementById('font-size-display').innerText = currentFontSize;
+        function deleteBookmark(idx) {
+            bookmarks.splice(idx, 1);
+            localStorage.setItem(`bookmarks_${currentNovel.id}`, JSON.stringify(bookmarks));
+            renderBookmarks();
         }
 
-        function toggleTheme() {
+        // ===== 样式更新 =====
+        function updateReaderFontSize() {
+            document.getElementById('reader-content').style.fontSize = fontSize + 'px';
+        }
+
+        function updateReaderLineHeight() {
+            document.getElementById('reader-content').style.lineHeight = lineHeight;
+        }
+
+        // ===== 深色模式 =====
+        function toggleDarkMode() {
             isDarkMode = !isDarkMode;
+            localStorage.setItem('reader_darkMode', isDarkMode);
             if (isDarkMode) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('reader_theme', 'dark');
+                applyDarkMode();
             } else {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('reader_theme', 'light');
+                removeDarkMode();
             }
+        }
+
+        function applyDarkMode() {
+            document.documentElement.style.setProperty('--bg-light', '#2c3e50');
+            document.documentElement.style.setProperty('--text-dark', '#ecf0f1');
+            document.documentElement.style.setProperty('--text-light', '#bdc3c7');
+            document.getElementById('theme-btn').textContent = '☀️ 日间模式';
+        }
+
+        function removeDarkMode() {
+            document.documentElement.style.setProperty('--bg-light', '#ecf0f1');
+            document.documentElement.style.setProperty('--text-dark', '#2c3e50');
+            document.documentElement.style.setProperty('--text-light', '#7f8c8d');
+            document.getElementById('theme-btn').textContent = '🌙 夜间模式';
+        }
+
+        // ===== 返回首页 =====
+        function goHome() {
+            document.getElementById('reader-page').classList.remove('active');
+            document.getElementById('novel-list-page').style.display = 'block';
+            document.getElementById('toc-sidebar').classList.remove('active');
+            document.getElementById('bookmarks-sidebar').classList.remove('active');
         }
     </script>
 </body>

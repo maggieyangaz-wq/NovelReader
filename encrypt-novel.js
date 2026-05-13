@@ -13,8 +13,9 @@ function encryptFile(inputPath) {
   // 生成随机 IV
   const iv = crypto.randomBytes(16);
 
-  // 从密码生成密钥（32字节用于 AES-256）
-  const key = crypto.scryptSync(PASSWORD, 'salt', 32);
+  // 从密码生成密钥（使用 PBKDF2，与前端一致）
+  const salt = Buffer.from('salt');
+  const key = crypto.pbkdf2Sync(PASSWORD, salt, 100000, 32, 'sha256');
 
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
 

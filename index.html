@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>极简本地小说阅读器</title>
+    <title>在线小说阅读器</title>
     <style>
         :root {
             --bg-color: #f6f4ec;
             --text-color: #333333;
             --control-bg: #ffffff;
             --accent-color: #4CAF50;
+            --error-color: #f44336;
             --font-size: 18px;
             --line-height: 1.8;
         }
 
-        /* 夜间模式变量 */
         [data-theme="dark"] {
             --bg-color: #1a1a1a;
             --text-color: #b0b0b0;
@@ -22,7 +22,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -31,7 +31,6 @@
             overflow-x: hidden;
         }
 
-        /* 顶部工具栏 */
         .header {
             position: fixed;
             top: 0;
@@ -48,7 +47,7 @@
         }
 
         .header h1 { font-size: 16px; font-weight: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
-        
+
         .btn {
             background: none;
             border: 1px solid var(--text-color);
@@ -59,17 +58,15 @@
             cursor: pointer;
         }
 
-        /* 主要阅读区域 */
         #reader-content {
             padding: 70px 20px 100px 20px;
             font-size: var(--font-size);
             line-height: var(--line-height);
-            white-space: pre-wrap; /* 保留原文换行 */
+            white-space: pre-wrap;
             text-align: justify;
             min-height: 100vh;
         }
 
-        /* 底部设置面板 */
         .settings-panel {
             position: fixed;
             bottom: 0;
@@ -112,10 +109,7 @@
             border-radius: 20px;
         }
 
-        /* 文件上传隐藏 */
-        #file-input { display: none; }
-
-        /* 空状态提示 */
+        /* 书单列表 */
         .empty-state {
             position: fixed;
             top: 50%;
@@ -124,33 +118,135 @@
             text-align: center;
             opacity: 0.6;
         }
-        
-        .upload-btn-large {
+
+        .novel-list {
+            padding: 70px 20px 20px 20px;
+        }
+
+        .novel-item {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background-color: var(--control-bg);
+            border: 1px solid var(--text-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .novel-item:hover {
+            opacity: 0.8;
+        }
+
+        /* 密码输入模态框 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 200;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background-color: var(--control-bg);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 300px;
+            width: 90%;
+        }
+
+        .modal h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--text-color);
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
-            padding: 10px 25px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--text-color);
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .modal-buttons button:hover {
+            opacity: 0.8;
+        }
+
+        .error-msg {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1 id="book-title">未选择文件</h1>
+        <h1 id="book-title">小说阅读器</h1>
         <button class="btn" onclick="toggleSettings()">设置</button>
     </div>
 
-    <div class="empty-state" id="empty-state">
-        <p>还没有加载小说</p>
-        <button class="upload-btn-large" onclick="document.getElementById('file-input').click()">点击选择 TXT 文件</button>
+    <!-- 书单列表 -->
+    <div id="novel-list-container" class="novel-list">
+        <button class="btn back-btn" id="back-btn" style="display:none;" onclick="backToList()">← 返回书单</button>
+        <div id="novel-items"></div>
+        <div id="loading-msg" style="text-align: center; opacity: 0.6;">加载中...</div>
     </div>
 
+    <!-- 阅读区域 -->
     <div id="reader-content"></div>
 
-    <input type="file" id="file-input" accept=".txt">
+    <!-- 密码输入框 -->
+    <div class="modal-overlay" id="password-modal">
+        <div class="modal">
+            <h2 id="modal-title">输入密钥</h2>
+            <input type="password" id="password-input" placeholder="请输入密钥" onkeypress="handlePasswordEnter(event)">
+            <div class="error-msg" id="error-msg"></div>
+            <div class="modal-buttons">
+                <button onclick="closePasswordModal()">取消</button>
+                <button onclick="submitPassword()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的下载元素 -->
+    <div id="hidden-downloader"></div>
 
     <div class="settings-panel" id="settings-panel">
         <div class="setting-row">
@@ -166,98 +262,231 @@
             <button class="theme-switch" onclick="toggleTheme()">切换 日间/夜间</button>
         </div>
         <div class="setting-row" style="justify-content: center; margin-bottom: 0;">
-            <button class="btn" onclick="document.getElementById('file-input').click()" style="width: 100%">打开新文件</button>
+            <button class="btn" onclick="backToList()" style="width: 100%">返回书单</button>
         </div>
     </div>
 
     <script>
-        // DOM 元素
-        const fileInput = document.getElementById('file-input');
         const contentDiv = document.getElementById('reader-content');
         const titleElem = document.getElementById('book-title');
-        const emptyState = document.getElementById('empty-state');
         const settingsPanel = document.getElementById('settings-panel');
-        
-        // 状态变量
+        const novelListContainer = document.getElementById('novel-list-container');
+        const novelItemsDiv = document.getElementById('novel-items');
+        const loadingMsg = document.getElementById('loading-msg');
+        const backBtn = document.getElementById('back-btn');
+        const passwordModal = document.getElementById('password-modal');
+        const passwordInput = document.getElementById('password-input');
+        const errorMsg = document.getElementById('error-msg');
+        const modalTitle = document.getElementById('modal-title');
+
         let currentFontSize = 18;
         let isDarkMode = false;
-        let currentFileName = '';
+        let novels = [];
+        let currentNovel = null;
+        let pendingNovelId = null;
 
-        // 初始化设置
+        // 初始化
         window.onload = function() {
-            // 恢复字号
             const savedSize = localStorage.getItem('reader_fontSize');
             if (savedSize) {
                 currentFontSize = parseInt(savedSize);
                 updateFontSize();
             }
-            
-            // 恢复主题
+
             const savedTheme = localStorage.getItem('reader_theme');
             if (savedTheme === 'dark') {
                 isDarkMode = true;
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
 
-            // 点击内容区域关闭设置面板
             contentDiv.addEventListener('click', () => {
                 settingsPanel.classList.remove('active');
             });
+
+            loadNovelsList();
         };
 
-        // 监听文件选择
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        // 加载书单
+        async function loadNovelsList() {
+            try {
+                const response = await fetch('novels/index.json');
+                const data = await response.json();
+                novels = data.novels;
+                displayNovels();
+            } catch (err) {
+                loadingMsg.innerText = '加载失败，请刷新重试';
+            }
+        }
 
-            currentFileName = file.name;
-            titleElem.innerText = currentFileName;
-            emptyState.style.display = 'none';
-            settingsPanel.classList.remove('active');
+        // 显示书单
+        function displayNovels() {
+            novelItemsDiv.innerHTML = '';
+            loadingMsg.style.display = 'none';
 
-            const reader = new FileReader();
-            
-            // 默认使用 UTF-8，如果是乱码通常是因为中文需要 GBK
-            // 这里简单处理：优先尝试读取
-            reader.onload = function(e) {
-                const text = e.target.result;
-                contentDiv.innerText = text;
-                
-                // 尝试恢复上次阅读位置
-                const lastPos = localStorage.getItem('reader_pos_' + currentFileName);
-                if (lastPos) {
-                    setTimeout(() => {
-                        window.scrollTo(0, parseInt(lastPos));
-                        alert('已跳转到上次阅读位置');
-                    }, 100);
-                } else {
-                    window.scrollTo(0, 0);
+            if (novels.length === 0) {
+                loadingMsg.innerText = '暂无小说';
+                loadingMsg.style.display = 'block';
+                return;
+            }
+
+            novels.forEach(novel => {
+                const btn = document.createElement('button');
+                btn.className = 'novel-item';
+                btn.textContent = novel.title;
+                btn.onclick = () => requestPassword(novel.id);
+                novelItemsDiv.appendChild(btn);
+            });
+        }
+
+        // 请求密码
+        function requestPassword(novelId) {
+            pendingNovelId = novelId;
+            const novel = novels.find(n => n.id === novelId);
+            modalTitle.textContent = `请输入密钥：${novel.title}`;
+            passwordInput.value = '';
+            errorMsg.innerText = '';
+            passwordModal.classList.add('active');
+            passwordInput.focus();
+        }
+
+        function handlePasswordEnter(event) {
+            if (event.key === 'Enter') {
+                submitPassword();
+            }
+        }
+
+        // 提交密码并解密
+        async function submitPassword() {
+            const password = passwordInput.value;
+            if (!password) return;
+
+            errorMsg.innerText = '';
+            const novel = novels.find(n => n.id === pendingNovelId);
+
+            try {
+                const response = await fetch(`novels/${novel.filename}`);
+                const encryptedBuffer = await response.arrayBuffer();
+
+                const decrypted = await decryptFile(encryptedBuffer, password);
+                if (decrypted === null) {
+                    errorMsg.innerText = '密码错误';
+                    return;
                 }
 
-                // 开始监听滚动以保存位置
-                window.addEventListener('scroll', saveProgress);
-            };
+                // 密码正确，显示内容
+                closePasswordModal();
+                displayNovel(novel, decrypted);
+            } catch (err) {
+                errorMsg.innerText = '密码错误';
+            }
+        }
 
-            reader.readAsText(file, 'UTF-8'); // 如果遇到乱码，可以将 'UTF-8' 改为 'GBK'
-        });
+        // 解密文件
+        async function decryptFile(encryptedBuffer, password) {
+            try {
+                const iv = new Uint8Array(encryptedBuffer.slice(0, 16));
+                const encrypted = new Uint8Array(encryptedBuffer.slice(16));
 
-        // 保存阅读进度 (节流处理，避免写入太频繁)
+                const key = await deriveKey(password);
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-CBC', iv: iv },
+                    key,
+                    encrypted
+                );
+
+                const decoder = new TextDecoder();
+                const text = decoder.decode(decrypted);
+
+                // 简单验证：如果解密出来的文本看起来不对，返回 null
+                // 这里我们假设有效的文本中至少包含一些可见的字符
+                if (!text || text.trim().length === 0) {
+                    return null;
+                }
+
+                return text;
+            } catch (err) {
+                return null;
+            }
+        }
+
+        // 从密码派生密钥
+        async function deriveKey(password) {
+            const encoder = new TextEncoder();
+            const passwordBuffer = encoder.encode(password);
+
+            const key = await crypto.subtle.importKey(
+                'raw',
+                passwordBuffer,
+                { name: 'PBKDF2' },
+                false,
+                ['deriveKey']
+            );
+
+            return crypto.subtle.deriveKey(
+                { name: 'PBKDF2', salt: encoder.encode('salt'), iterations: 100000, hash: 'SHA-256' },
+                key,
+                { name: 'AES-CBC', length: 256 },
+                false,
+                ['decrypt']
+            );
+        }
+
+        function closePasswordModal() {
+            passwordModal.classList.remove('active');
+        }
+
+        // 显示小说
+        function displayNovel(novel, text) {
+            currentNovel = novel;
+            novelListContainer.style.display = 'none';
+            contentDiv.style.display = 'block';
+            contentDiv.innerText = text;
+            titleElem.innerText = novel.title;
+            backBtn.style.display = 'inline-block';
+
+            const lastPos = localStorage.getItem('reader_pos_' + novel.id);
+            if (lastPos) {
+                setTimeout(() => {
+                    window.scrollTo(0, parseInt(lastPos));
+                }, 100);
+            } else {
+                window.scrollTo(0, 0);
+            }
+
+            window.addEventListener('scroll', saveProgress);
+        }
+
+        // 返回书单
+        function backToList() {
+            if (currentNovel) {
+                window.removeEventListener('scroll', saveProgress);
+                contentDiv.style.display = 'none';
+                contentDiv.innerText = '';
+                currentNovel = null;
+            }
+
+            novelListContainer.style.display = 'block';
+            titleElem.innerText = '小说阅读器';
+            backBtn.style.display = 'none';
+            settingsPanel.classList.remove('active');
+        }
+
+        // 保存进度
         let scrollTimeout;
         function saveProgress() {
+            if (!currentNovel) return;
             if (scrollTimeout) clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
-                if (currentFileName) {
-                    localStorage.setItem('reader_pos_' + currentFileName, window.scrollY);
-                }
+                localStorage.setItem('reader_pos_' + currentNovel.id, window.scrollY);
             }, 500);
         }
 
-        // 设置面板开关
         function toggleSettings() {
-            settingsPanel.classList.toggle('active');
+            if (currentNovel) {
+                settingsPanel.classList.toggle('active');
+            }
         }
 
-        // 调整字体
         function changeFontSize(delta) {
             currentFontSize += delta;
             if (currentFontSize < 12) currentFontSize = 12;
@@ -271,7 +500,6 @@
             document.getElementById('font-size-display').innerText = currentFontSize;
         }
 
-        // 切换主题
         function toggleTheme() {
             isDarkMode = !isDarkMode;
             if (isDarkMode) {

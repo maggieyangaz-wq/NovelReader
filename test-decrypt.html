@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>解密测试</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f0f0f0; }
+        .log { background: white; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>前端解密测试</h1>
+    <button onclick="testDecrypt()">开始测试</button>
+    <div id="log"></div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        function log(msg, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'log' + (isError ? ' error' : '');
+            div.textContent = msg;
+            logDiv.appendChild(div);
+            console.log(msg);
+        }
+
+        async function deriveKey(password) {
+            const encoder = new TextEncoder();
+            const passwordBuffer = encoder.encode(password);
+
+            log('密码: ' + password);
+            log('密码 (hex): ' + Array.from(passwordBuffer).map(b => b.toString(16).padStart(2, '0')).join(''));
+
+            const key = await crypto.subtle.importKey(
+                'raw',
+                passwordBuffer,
+                { name: 'PBKDF2' },
+                false,
+                ['deriveKey']
+            );
+
+            const saltBuffer = encoder.encode('salt');
+            log('Salt: ' + Array.from(saltBuffer).map(b => String.fromCharCode(b)).join(''));
+
+            const derivedKey = await crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: saltBuffer,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                key,
+                { name: 'AES-CBC', length: 256 },
+                true, // 允许导出以便调试
+                ['decrypt']
+            );
+
+            const exportedKey = await crypto.subtle.exportKey('raw', derivedKey);
+            log('派生密钥 (hex): ' + Array.from(new Uint8Array(exportedKey)).map(b => b.toString(16).padStart(2, '0')).join(''));
+
+            return derivedKey;
+        }
+
+        async function testDecrypt() {
+            try {
+                log('=== 开始测试 ===');
+
+                // 获取加密文件
+                log('正在加载加密文件...');
+                const response = await fetch('test-encrypted.bin');
+                if (!response.ok) throw new Error('无法加载 test-encrypted.bin');
+
+                const encryptedBuffer = await response.arrayBuffer();
+                log('文件大小: ' + encryptedBuffer.byteLength + ' 字节');
+
+                // 分离 IV 和密文
+                const iv = new Uint8Array(encryptedBuffer.slice(0, 16));
+                const encrypted = new Uint8Array(encryptedBuffer.slice(16));
+
+                log('IV (hex): ' + Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join(''));
+                log('密文大小: ' + encrypted.length + ' 字节');
+
+                // 派生密钥
+                const key = await deriveKey('spankingisgreat');
+
+                // 解密
+                log('正在解密...');
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-CBC', iv: iv },
+                    key,
+                    encrypted
+                );
+
+                const decoder = new TextDecoder();
+                const text = decoder.decode(decrypted);
+
+                log('=== 解密成功 ===', false);
+                log('解密内容: ' + text, false);
+
+            } catch (err) {
+                log('=== 解密失败 ===', true);
+                log('错误: ' + err.message, true);
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>

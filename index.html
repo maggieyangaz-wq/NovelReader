@@ -18,13 +18,28 @@
             --text-dark: #2c3e50;
             --text-light: #7f8c8d;
             --border-color: #bdc3c7;
+            --body-bg: #f5f5f5;
+            --reader-bg: #ffffff;
+            --card-bg: #ffffff;
+        }
+
+        body.dark-mode {
+            --primary-color: #34495e;
+            --bg-light: #2c3e50;
+            --text-dark: #ecf0f1;
+            --text-light: #bdc3c7;
+            --border-color: #34495e;
+            --body-bg: #1a1a1a;
+            --reader-bg: #1e1e1e;
+            --card-bg: #2d2d2d;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f5f5f5;
+            background-color: var(--body-bg);
             color: var(--text-dark);
             line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* ===== 头部 ===== */
@@ -100,7 +115,7 @@
         }
 
         .novel-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -177,7 +192,8 @@
         .reader-page {
             display: none;
             min-height: 100vh;
-            background: white;
+            background: var(--reader-bg);
+            transition: background-color 0.3s;
         }
 
         .reader-page.active {
@@ -285,8 +301,8 @@
         }
 
         .footer-btn {
-            background: white;
-            color: var(--primary-color);
+            background: var(--card-bg);
+            color: var(--text-dark);
             border: 1px solid var(--border-color);
             padding: 8px 16px;
             border-radius: 6px;
@@ -325,7 +341,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 30px;
             max-width: 500px;
@@ -333,6 +349,7 @@
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
         }
 
         .modal-title {
@@ -348,6 +365,9 @@
             border-radius: 6px;
             font-size: 14px;
             margin-bottom: 15px;
+            background: var(--reader-bg);
+            color: var(--text-dark);
+            transition: all 0.3s;
         }
 
         .modal-error {
@@ -390,7 +410,7 @@
             top: 0;
             width: 350px;
             height: 100vh;
-            background: white;
+            background: var(--card-bg);
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             transition: left 0.3s;
             z-index: 150;
@@ -462,7 +482,7 @@
             top: 0;
             width: 350px;
             height: 100vh;
-            background: white;
+            background: var(--card-bg);
             box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
             transition: right 0.3s;
             z-index: 150;
@@ -1063,16 +1083,12 @@
         }
 
         function applyDarkMode() {
-            document.documentElement.style.setProperty('--bg-light', '#2c3e50');
-            document.documentElement.style.setProperty('--text-dark', '#ecf0f1');
-            document.documentElement.style.setProperty('--text-light', '#bdc3c7');
+            document.body.classList.add('dark-mode');
             document.getElementById('theme-btn').textContent = '☀️ 日间模式';
         }
 
         function removeDarkMode() {
-            document.documentElement.style.setProperty('--bg-light', '#ecf0f1');
-            document.documentElement.style.setProperty('--text-dark', '#2c3e50');
-            document.documentElement.style.setProperty('--text-light', '#7f8c8d');
+            document.body.classList.remove('dark-mode');
             document.getElementById('theme-btn').textContent = '🌙 夜间模式';
         }
 

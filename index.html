@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>小说阅读器</title>
     <style>
         * {
@@ -573,30 +576,170 @@
             color: var(--text-light);
         }
 
-        /* ===== 深色模式全局样式覆盖 ===== */
+        /* ========================================
+           深色模式 - 完整样式覆盖
+           使用最高优先级确保生效
+           ======================================== */
+
+        /* 整体页面 */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+
+        /* 头部 */
+        body.dark-mode .header {
+            background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%) !important;
+        }
+
+        body.dark-mode .header h1 {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .header-btn {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        body.dark-mode .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* 书单列表页面 */
+        body.dark-mode .novel-list-page {
+            background-color: #121212 !important;
+        }
+
+        body.dark-mode .section-title {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .novel-card {
+            background: #1e1e1e !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        body.dark-mode .novel-cover {
+            background: linear-gradient(135deg, #3a3a4a 0%, #4a3a5a 100%) !important;
+        }
+
+        body.dark-mode .novel-title {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .novel-status {
+            color: #a0a0a0 !important;
+        }
+
+        /* 阅读页面 */
+        body.dark-mode .reader-page {
+            background: #1a1a1a !important;
+        }
+
         body.dark-mode .reader-header {
-            background: #1a1a1a;
-            border-bottom: 1px solid var(--border-color);
+            background: #2a2a2a !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .reader-content {
+            color: #d0d0d0 !important;
+            background: #1a1a1a !important;
         }
 
         body.dark-mode .reader-footer {
-            background: var(--card-bg);
+            background: #2a2a2a !important;
+            border-top-color: #3a3a3a !important;
+        }
+
+        body.dark-mode .progress-text {
+            color: #a0a0a0 !important;
+        }
+
+        body.dark-mode .progress-bar {
+            background: #444 !important;
+        }
+
+        body.dark-mode .footer-btn {
+            background: #3a3a3a !important;
+            color: #e0e0e0 !important;
+            border-color: #555 !important;
+        }
+
+        body.dark-mode .footer-btn:hover:not(:disabled) {
+            background: #4a4a4a !important;
+            color: #ffffff !important;
+        }
+
+        /* 侧栏 */
+        body.dark-mode .toc-sidebar,
+        body.dark-mode .bookmarks-sidebar {
+            background: #1e1e1e !important;
         }
 
         body.dark-mode .toc-header,
         body.dark-mode .bookmarks-header {
-            background: #1a1a1a;
+            background: #2a2a2a !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .toc-item {
+            color: #d0d0d0 !important;
+        }
+
+        body.dark-mode .toc-item:hover {
+            background: #2a2a2a !important;
+        }
+
+        body.dark-mode .toc-item.active {
+            background: rgba(231, 76, 60, 0.2) !important;
+            color: #ff6b6b !important;
+        }
+
+        body.dark-mode .bookmark-item {
+            border-bottom-color: #2a2a2a !important;
+        }
+
+        body.dark-mode .bookmark-item:hover {
+            background: #2a2a2a !important;
+        }
+
+        body.dark-mode .bookmark-title {
+            color: #a0a0a0 !important;
+        }
+
+        body.dark-mode .bookmark-text {
+            color: #d0d0d0 !important;
+        }
+
+        body.dark-mode .empty-state {
+            color: #888 !important;
+        }
+
+        /* 模态框 */
+        body.dark-mode .modal-content {
+            background: #1e1e1e !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .modal-title {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .modal-input {
+            background: #2a2a2a !important;
+            color: #e0e0e0 !important;
+            border-color: #444 !important;
         }
 
         body.dark-mode .modal-btn-cancel {
-            background: var(--card-bg);
-            border-color: var(--border-color);
+            background: #3a3a3a !important;
+            color: #e0e0e0 !important;
+            border-color: #555 !important;
         }
 
-        body.dark-mode .footer-btn:hover {
-            background: var(--primary-color);
-            color: #000;
-            border-color: var(--primary-color);
+        body.dark-mode label {
+            color: #e0e0e0 !important;
         }
     </style>
 </head>
@@ -606,8 +749,8 @@
         <div class="header-content">
             <h1>📚 小说阅读器</h1>
             <div class="header-buttons">
-                <button class="header-btn" id="theme-btn">🌙 夜间模式</button>
-                <button class="header-btn" id="home-btn">首页</button>
+                <button class="header-btn" id="theme-btn" onclick="toggleDarkMode()">🌙 夜间模式</button>
+                <button class="header-btn" id="home-btn" onclick="goHome()">首页</button>
             </div>
         </div>
     </div>
@@ -748,8 +891,7 @@
             document.getElementById('password-confirm').addEventListener('click', submitPassword);
             document.getElementById('password-cancel').addEventListener('click', closePasswordModal);
 
-            document.getElementById('theme-btn').addEventListener('click', toggleDarkMode);
-            document.getElementById('home-btn').addEventListener('click', goHome);
+            // theme-btn 和 home-btn 使用 inline onclick
 
             document.getElementById('toc-btn').addEventListener('click', () => {
                 document.getElementById('toc-sidebar').classList.toggle('active');
@@ -1110,6 +1252,7 @@
 
         // ===== 深色模式 =====
         function toggleDarkMode() {
+            console.log('toggleDarkMode 被调用，当前 isDarkMode:', isDarkMode);
             isDarkMode = !isDarkMode;
             localStorage.setItem('reader_darkMode', isDarkMode);
             if (isDarkMode) {
@@ -1117,16 +1260,21 @@
             } else {
                 removeDarkMode();
             }
+            console.log('切换后 body 的 class:', document.body.className);
         }
 
         function applyDarkMode() {
             document.body.classList.add('dark-mode');
-            document.getElementById('theme-btn').textContent = '☀️ 日间模式';
+            const btn = document.getElementById('theme-btn');
+            if (btn) btn.textContent = '☀️ 日间模式';
+            console.log('已添加 dark-mode class');
         }
 
         function removeDarkMode() {
             document.body.classList.remove('dark-mode');
-            document.getElementById('theme-btn').textContent = '🌙 夜间模式';
+            const btn = document.getElementById('theme-btn');
+            if (btn) btn.textContent = '🌙 夜间模式';
+            console.log('已移除 dark-mode class');
         }
 
         // ===== 返回首页 =====

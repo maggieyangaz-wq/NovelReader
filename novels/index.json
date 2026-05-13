@@ -1,0 +1,9 @@
+{
+  "novels": [
+    {
+      "id": "novel-1",
+      "title": "测试小说",
+      "filename": "test-novel1.txt.encrypted"
+    }
+  ]
+}

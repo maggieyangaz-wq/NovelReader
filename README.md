@@ -34,6 +34,7 @@
    ```bash
    node encrypt-novel.js your-novel.txt
    ```
+   （脚本使用 `PASSWORD` 变量中设定的密钥加密）
 3. 加密后的文件会生成在 `novels/` 目录下
 4. 更新 `novels/index.json`，添加小说信息：
    ```json
@@ -48,6 +49,7 @@
    }
    ```
 5. 在浏览器中打开 `index.html`
+6. 点击小说，输入密钥后即可阅读
 
 ### 方式二：在线部署（GitHub Pages）
 
@@ -55,11 +57,11 @@
 2. 启用 GitHub Pages（Settings → Pages）
 3. 通过 GitHub Pages 链接访问
 
-## 密钥
-
-默认密钥：`spankingisgreat`
+## 密钥管理
 
 密钥在源代码中没有以明文形式存储，而是在用户输入时用于解密文件。
+
+默认密钥已设定在加密脚本中（`encrypt-novel.js`），如需更改密钥，请修改脚本中的 `PASSWORD` 变量并重新加密小说文件。
 
 ## 技术细节
 

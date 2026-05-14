@@ -254,6 +254,16 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
+        #quick-bookmark-btn {
+            font-size: 18px;
+            padding: 6px 10px;
+            transition: all 0.3s;
+        }
+
+        #quick-bookmark-btn:hover {
+            transform: scale(1.2);
+        }
+
         .reader-content {
             flex: 1;
             overflow-y: auto;
@@ -269,6 +279,35 @@
             .reader-content {
                 padding: 20px;
                 max-width: 100%;
+            }
+
+            .footer-btn {
+                padding: 12px 20px !important;
+                font-size: 16px !important;
+                flex: 1;
+            }
+
+            .footer-buttons {
+                width: 100%;
+                gap: 8px;
+            }
+
+            .progress-container {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .reader-header-buttons {
+                gap: 5px !important;
+            }
+
+            .reader-btn {
+                padding: 6px 8px !important;
+                font-size: 12px !important;
+            }
+
+            #quick-bookmark-btn {
+                font-size: 16px !important;
             }
         }
 
@@ -766,6 +805,7 @@
         <div class="reader-header">
             <div class="reader-header-title" id="reader-title"></div>
             <div class="reader-header-buttons">
+                <button class="reader-btn" id="quick-bookmark-btn" title="快速加书签">♡</button>
                 <button class="reader-btn" id="toc-btn">📑 目录</button>
                 <button class="reader-btn" id="bookmark-btn">🔖 书签</button>
                 <button class="reader-btn" id="settings-btn">⚙️ 设置</button>
@@ -900,6 +940,7 @@
                 document.getElementById('toc-sidebar').classList.remove('active');
             });
 
+            document.getElementById('quick-bookmark-btn').addEventListener('click', quickToggleBookmark);
             document.getElementById('bookmark-btn').addEventListener('click', () => {
                 document.getElementById('bookmarks-sidebar').classList.toggle('active');
             });
@@ -1118,12 +1159,16 @@
 
             // 更新活跃目录项
             updateActiveTocItem();
+
+            // 更新快速书签按钮
+            updateQuickBookmarkButton();
         }
 
         function prevPage() {
             if (currentPage > 0) {
                 currentPage--;
                 renderCurrentPage();
+                window.scrollTo(0, 0);
             }
         }
 
@@ -1131,6 +1176,7 @@
             if (currentPage < totalPages - 1) {
                 currentPage++;
                 renderCurrentPage();
+                window.scrollTo(0, 0);
             }
         }
 
@@ -1210,6 +1256,29 @@
 
             localStorage.setItem(`bookmarks_${currentNovel.id}`, JSON.stringify(bookmarks));
             renderBookmarks();
+            updateQuickBookmarkButton();
+        }
+
+        function quickToggleBookmark() {
+            const hasBookmark = bookmarks.some(bm => bm.page === currentPage);
+            if (hasBookmark) {
+                const idx = bookmarks.findIndex(bm => bm.page === currentPage);
+                deleteBookmark(idx);
+            } else {
+                addBookmark();
+            }
+        }
+
+        function updateQuickBookmarkButton() {
+            const btn = document.getElementById('quick-bookmark-btn');
+            const hasBookmark = bookmarks.some(bm => bm.page === currentPage);
+            if (hasBookmark) {
+                btn.textContent = '❤';
+                btn.style.color = '#e74c3c';
+            } else {
+                btn.textContent = '♡';
+                btn.style.color = 'white';
+            }
         }
 
         function renderBookmarks() {
@@ -1239,6 +1308,7 @@
             bookmarks.splice(idx, 1);
             localStorage.setItem(`bookmarks_${currentNovel.id}`, JSON.stringify(bookmarks));
             renderBookmarks();
+            updateQuickBookmarkButton();
         }
 
         // ===== 样式更新 =====

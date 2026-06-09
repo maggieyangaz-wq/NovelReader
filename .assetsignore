@@ -1,0 +1,8 @@
+# Cloudflare Workers 静态资源上传排除列表（只部署 index.html 和 novels/）
+.git
+.github
+.gitignore
+.assetsignore
+README.md
+encrypt-novel.js
+wrangler.jsonc

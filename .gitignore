@@ -1,5 +1,7 @@
-# 原始小说文件（未加密）
+# 原始小说文件（未加密）—— 任何明文小说都不允许进仓库
 *.txt
+novels/*.txt
+novels/*.md
 !README.md
 
 # Node 相关

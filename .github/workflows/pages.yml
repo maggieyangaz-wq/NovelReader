@@ -27,10 +27,17 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      # 只发布站点需要的文件，加密脚本等不进入部署产物
+      - name: Prepare site directory
+        run: |
+          mkdir _site
+          cp index.html .nojekyll _site/
+          cp -r novels _site/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

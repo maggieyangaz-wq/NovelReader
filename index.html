@@ -973,11 +973,13 @@
             });
 
             document.getElementById('chars-per-page-slider').addEventListener('input', (e) => {
+                const currentOffset = currentPage * charsPerPage;
                 charsPerPage = parseInt(e.target.value);
                 localStorage.setItem('reader_charsPerPage', charsPerPage);
                 document.getElementById('chars-per-page-display').textContent = charsPerPage;
-                currentPage = 0;
                 totalPages = Math.ceil(currentNovelText.length / charsPerPage);
+                // 保持当前阅读位置不变
+                currentPage = Math.max(0, Math.min(Math.floor(currentOffset / charsPerPage), totalPages - 1));
                 renderCurrentPage();
             });
 
@@ -987,7 +989,7 @@
             document.getElementById('progress-bar').addEventListener('click', (e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const percentage = (e.clientX - rect.left) / rect.width;
-                currentPage = Math.floor(percentage * totalPages);
+                currentPage = Math.max(0, Math.min(Math.floor(percentage * totalPages), totalPages - 1));
                 renderCurrentPage();
             });
 
@@ -1010,6 +1012,16 @@
             document.getElementById('chars-per-page-display').textContent = charsPerPage;
         }
 
+        // ===== 工具 =====
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // ===== 加载小说列表 =====
         async function loadNovelsList() {
             try {
@@ -1025,12 +1037,12 @@
         function displayNovels() {
             const grid = document.getElementById('novels-grid');
             grid.innerHTML = novels.map(novel => `
-                <div class="novel-card" onclick="requestPassword('${novel.id}')">
+                <div class="novel-card" onclick="requestPassword('${escapeHtml(novel.id)}')">
                     <div class="novel-cover">
-                        <div class="novel-cover-text">${novel.title}</div>
+                        <div class="novel-cover-text">${escapeHtml(novel.title)}</div>
                     </div>
                     <div class="novel-info">
-                        <div class="novel-title">${novel.title}</div>
+                        <div class="novel-title">${escapeHtml(novel.title)}</div>
                         <div class="novel-status">点击开始阅读</div>
                     </div>
                 </div>
@@ -1051,21 +1063,24 @@
             if (!password) return;
 
             const novel = novels.find(n => n.id === pendingNovelId);
+            let encryptedBuffer;
             try {
-                const response = await fetch(`novels/${novel.filename}`);
-                const encryptedBuffer = await response.arrayBuffer();
-                const decrypted = await decryptFile(encryptedBuffer, password);
-
-                if (decrypted === null) {
-                    document.getElementById('password-error').textContent = '密码错误';
-                    return;
-                }
-
-                closePasswordModal();
-                openNovel(novel, decrypted);
+                const response = await fetch(`novels/${encodeURIComponent(novel.filename)}`);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                encryptedBuffer = await response.arrayBuffer();
             } catch (err) {
-                document.getElementById('password-error').textContent = '密码错误';
+                document.getElementById('password-error').textContent = '文件加载失败，请检查网络后重试';
+                return;
             }
+
+            const decrypted = await decryptFile(encryptedBuffer, password);
+            if (decrypted === null) {
+                document.getElementById('password-error').textContent = '密码错误';
+                return;
+            }
+
+            closePasswordModal();
+            openNovel(novel, decrypted);
         }
 
         function closePasswordModal() {
@@ -1073,26 +1088,29 @@
         }
 
         // ===== 解密 =====
+        // 文件格式: NVL2(4字节魔数) | salt(16) | iv(12) | 密文+GCM认证标签
         async function decryptFile(encryptedBuffer, password) {
             try {
-                const iv = new Uint8Array(encryptedBuffer.slice(0, 16));
-                const encrypted = new Uint8Array(encryptedBuffer.slice(16));
-                const key = await deriveKey(password);
+                const data = new Uint8Array(encryptedBuffer);
+                const magic = new TextDecoder().decode(data.slice(0, 4));
+                if (magic !== 'NVL2') return null;
+                const salt = data.slice(4, 20);
+                const iv = data.slice(20, 32);
+                const ciphertext = data.slice(32);
+                const key = await deriveKey(password, salt);
                 const decrypted = await crypto.subtle.decrypt(
-                    { name: 'AES-CBC', iv: iv },
+                    { name: 'AES-GCM', iv: iv },
                     key,
-                    encrypted
+                    ciphertext
                 );
-                const decoder = new TextDecoder();
-                const text = decoder.decode(decrypted);
-                if (!text || text.trim().length === 0) return null;
-                return text;
+                // GCM 自带认证，密码错误时 decrypt 会直接抛异常
+                return new TextDecoder().decode(decrypted);
             } catch (err) {
                 return null;
             }
         }
 
-        async function deriveKey(password) {
+        async function deriveKey(password, salt) {
             const encoder = new TextEncoder();
             const passwordBuffer = encoder.encode(password);
             const key = await crypto.subtle.importKey(
@@ -1103,9 +1121,9 @@
                 ['deriveKey']
             );
             return crypto.subtle.deriveKey(
-                { name: 'PBKDF2', salt: encoder.encode('salt'), iterations: 100000, hash: 'SHA-256' },
+                { name: 'PBKDF2', salt: salt, iterations: 300000, hash: 'SHA-256' },
                 key,
-                { name: 'AES-CBC', length: 256 },
+                { name: 'AES-GCM', length: 256 },
                 false,
                 ['decrypt']
             );
@@ -1116,14 +1134,17 @@
             currentNovel = novel;
             currentNovelText = text;
             currentPage = 0;
-
-            // 恢复之前的阅读位置
-            const savedPage = localStorage.getItem(`reader_page_${novel.id}`);
-            if (savedPage) {
-                currentPage = parseInt(savedPage);
-            }
-
             totalPages = Math.ceil(text.length / charsPerPage);
+
+            // 恢复之前的阅读位置（按字符偏移保存，换每页字数后位置不漂移）
+            const savedPos = localStorage.getItem(`reader_pos_${novel.id}`);
+            const legacyPage = localStorage.getItem(`reader_page_${novel.id}`);
+            if (savedPos !== null) {
+                currentPage = Math.floor(parseInt(savedPos) / charsPerPage);
+            } else if (legacyPage !== null) {
+                currentPage = parseInt(legacyPage);
+            }
+            currentPage = Math.max(0, Math.min(currentPage || 0, totalPages - 1));
             parseTableOfContents();
             loadBookmarks();
 
@@ -1151,8 +1172,8 @@
             document.getElementById('prev-btn').disabled = currentPage === 0;
             document.getElementById('next-btn').disabled = currentPage >= totalPages - 1;
 
-            // 保存阅读位置
-            localStorage.setItem(`reader_page_${currentNovel.id}`, currentPage);
+            // 保存阅读位置（字符偏移）
+            localStorage.setItem(`reader_pos_${currentNovel.id}`, startIdx);
 
             // 滚动到顶部
             document.getElementById('reader-content').scrollTop = 0;
@@ -1208,7 +1229,7 @@
             }
 
             list.innerHTML = tableOfContents.map((item, idx) => `
-                <div class="toc-item" onclick="jumpToChapter(${idx})">${item.title}</div>
+                <div class="toc-item" onclick="jumpToChapter(${idx})">${escapeHtml(item.title)}</div>
             `).join('');
         }
 
@@ -1290,8 +1311,8 @@
 
             list.innerHTML = bookmarks.map((bm, idx) => `
                 <div class="bookmark-item">
-                    <div class="bookmark-title">第 ${bm.page + 1} 页 • ${bm.timestamp}</div>
-                    <div class="bookmark-text">"${bm.text.substring(0, 50)}..."</div>
+                    <div class="bookmark-title">第 ${bm.page + 1} 页 • ${escapeHtml(bm.timestamp)}</div>
+                    <div class="bookmark-text">"${escapeHtml(bm.text.substring(0, 50))}..."</div>
                     <button class="bookmark-delete" onclick="deleteBookmark(${idx})">删除</button>
                     <button class="footer-btn" style="width: 100%; margin-top: 8px;" onclick="jumpToBookmark(${idx})">跳转</button>
                 </div>
@@ -1322,7 +1343,6 @@
 
         // ===== 深色模式 =====
         function toggleDarkMode() {
-            console.log('toggleDarkMode 被调用，当前 isDarkMode:', isDarkMode);
             isDarkMode = !isDarkMode;
             localStorage.setItem('reader_darkMode', isDarkMode);
             if (isDarkMode) {
@@ -1330,21 +1350,18 @@
             } else {
                 removeDarkMode();
             }
-            console.log('切换后 body 的 class:', document.body.className);
         }
 
         function applyDarkMode() {
             document.body.classList.add('dark-mode');
             const btn = document.getElementById('theme-btn');
             if (btn) btn.textContent = '☀️ 日间模式';
-            console.log('已添加 dark-mode class');
         }
 
         function removeDarkMode() {
             document.body.classList.remove('dark-mode');
             const btn = document.getElementById('theme-btn');
             if (btn) btn.textContent = '🌙 夜间模式';
-            console.log('已移除 dark-mode class');
         }
 
         // ===== 返回首页 =====

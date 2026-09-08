@@ -24,20 +24,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          READER_BASE_PATH: /${{ github.event.repository.name }}/
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
-      # 只发布站点需要的文件，加密脚本等不进入部署产物
-      - name: Prepare site directory
-        run: |
-          mkdir _site
-          cp index.html .nojekyll _site/
-          cp -r novels _site/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: 'dist'
 
       - name: Deploy to GitHub Pages
         id: deployment

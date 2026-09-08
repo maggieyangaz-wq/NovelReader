@@ -1,4 +1,4 @@
-# Cloudflare Workers 静态资源上传排除列表（只部署 index.html 和 novels/）
+# 兼容旧部署配置；当前 wrangler 只上传构建后的 dist/。
 .git
 .github
 .gitignore
@@ -6,3 +6,10 @@
 README.md
 encrypt-novel.js
 wrangler.jsonc
+src
+tests
+node_modules
+package.json
+package-lock.json
+tsconfig.json
+vite.config.ts

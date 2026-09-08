@@ -6,7 +6,9 @@ novels/*.md
 
 # Node 相关
 node_modules/
-package-lock.json
+dist/
+_site/
+coverage/
 
 # IDE
 .vscode/

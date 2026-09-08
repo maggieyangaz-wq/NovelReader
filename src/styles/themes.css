@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  --primary-color: #2c3e50;
+  --secondary-color: #e74c3c;
+  --bg-light: #ecf0f1;
+  --text-dark: #2c3e50;
+  --text-light: #7f8c8d;
+  --border-color: #bdc3c7;
+  --body-bg: #f5f5f5;
+  --reader-bg: #ffffff;
+  --reader-text: #2c3e50;
+  --card-bg: #ffffff;
+  --header-background: linear-gradient(135deg, #2c3e50, #2c3e50);
+  --cover-background: linear-gradient(135deg, #667eea, #764ba2);
+  --bar-background: #2c3e50;
+  --button-background: #ffffff;
+  --button-hover-background: #2c3e50;
+  --input-background: #ffffff;
+  --chapter-active-background: rgba(231, 76, 60, 0.1);
+}
+
+body.dark-mode {
+  color-scheme: dark;
+  --primary-color: #ffffff;
+  --secondary-color: #ff6b6b;
+  --bg-light: #2a2a2a;
+  --text-dark: #e0e0e0;
+  --text-light: #a0a0a0;
+  --border-color: #444444;
+  --body-bg: #121212;
+  --reader-bg: #1a1a1a;
+  --reader-text: #d0d0d0;
+  --card-bg: #1e1e1e;
+  --header-background: linear-gradient(135deg, #1f1f1f, #2a2a2a);
+  --cover-background: linear-gradient(135deg, #3a3a4a, #4a3a5a);
+  --bar-background: #2a2a2a;
+  --button-background: #3a3a3a;
+  --button-hover-background: #4a4a4a;
+  --input-background: #2a2a2a;
+  --chapter-active-background: rgba(231, 76, 60, 0.2);
+}

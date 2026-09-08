@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // 密钥从环境变量读取，不写入源代码：
 //   NOVEL_PASSWORD=你的密钥 node encrypt-novel.js <文件路径>

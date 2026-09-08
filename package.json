@@ -1,0 +1,23 @@
+{
+  "name": "sp-novel-reader",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^24.15.0 || >=26.0.0"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --experimental-strip-types --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^24.13.3",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}

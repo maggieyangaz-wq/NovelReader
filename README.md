@@ -78,7 +78,7 @@ npm run preview     # 查看构建后的页面
 
 - **GitHub Pages**：push 到 `main` 后，工作流运行 `npm ci`、测试和构建，再发布 `dist/`。`READER_BASE_PATH` 自动设为 `/<仓库名>/`，适配当前 `/SP-Novel-Reader/` 地址。分支和 PR 会运行 `.github/workflows/check.yml` 验证构建。
 - **Cloudflare Workers**：安装依赖后运行 `wrangler deploy`；`wrangler.jsonc` 会先执行构建，然后只上传 `dist/`。默认构建路径为 `/`，适用于域名根路径。此配置使用 Wrangler 的[自定义构建步骤](https://developers.cloudflare.com/workers/wrangler/configuration/#custom-builds)。
-- **产物范围**：`index.html`、构建生成的 JS/CSS、`.nojekyll`、`novels/index.json` 和 `.encrypted` 文件；加密工具、源码、测试和原始明文不进入构建产物。
+- **产物范围**：`index.html`、构建生成的 JS/CSS、`.nojekyll`、`novels/index.json` 和索引中列出的 `.encrypted` 文件；未列入书库的旧密文、加密工具、源码、测试和原始明文不进入构建产物。索引格式错误或缺少对应密文时，构建会失败。
 
 如果需要在本地验证 GitHub Pages 子路径，构建和预览时使用相同的环境变量：
 

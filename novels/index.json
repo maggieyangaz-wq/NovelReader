@@ -1,6 +1,11 @@
 {
   "novels": [
     {
+      "id": "novel-5",
+      "title": "非同小可",
+      "filename": "novel-5.txt.encrypted"
+    },
+    {
       "id": "novel-10",
       "title": "弄潮条例",
       "filename": "弄潮条例.txt.encrypted"
@@ -139,6 +144,11 @@
       "id": "novel-43",
       "title": "银狼？淫狼！将银狼爆炒至上瘾，与卡芙卡偷食禁果的二三事",
       "filename": "novel-43.txt.encrypted"
+    },
+    {
+      "id": "novel-44",
+      "title": "被收养的女孩",
+      "filename": "novel-44.txt.encrypted"
     }
   ]
 }
